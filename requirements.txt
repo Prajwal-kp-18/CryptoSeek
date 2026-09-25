@@ -1,0 +1,8 @@
+python-dotenv>=1.0.0
+python-magic
+binwalk
+pyelftools 
+scikit-learn
+pandas
+lightgbm
+joblib
