@@ -1,0 +1,77 @@
+venv/
+__pycache__/
+.~lock.*#
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+filtered_json/
+rag/
+
+.env
+.venv/
+
+
+# Ghidra
+*.gpr
+*.rep/
+ghidra_project/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+builds/
+builds_x86/
+analysis_workspace/
+report_*.json
+vulnerable_fs/
+test_fs/
+test_dummy.elf
+random.bin
+hardening_patch.sh
+*.bin
+*.extracted
+# ghidra_output/
+ml/final_training_dataset.json
+ghidra_project/
+builds_new/
+# ghidra_json_new/
+pipeline_output/
+ghidra_final_output/
+gnn_output/
+ghidra_json_new/
+ghidra_json/
+z_present/
+7ff8de6b-bda0-4d39-9eb6-258ad286de4a.json
+# Generated analysis artifacts
+analysis/*.json
+analysis_output/
+pipeline_output/
+
+# Ghidra generated outputs
+ghidra_output/
+ghidra_json/
+ghidra_json_new/
+
+# Build artifacts
+builds/
+builds_new/
+
+# Binary / temporary files
+*.bin
+*.elf
+*.lock
+qiling_analysis/tests/analysis_logs
+qiling_analysis/tests/strace_logs
+backend/job_storage
+backend/logs
+backend/qiling_output
