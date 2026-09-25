@@ -21,7 +21,7 @@ seaborn>=0.11.0
 tqdm>=4.62.0
 
 # Jupyter support (optional, for notebook)
-jupyter>=1.0.0
+jupyter>=1.1.1
 ipywidgets>=7.6.0
 
 # Graph visualization (optional)
