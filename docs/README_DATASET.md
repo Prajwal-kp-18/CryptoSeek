@@ -1,6 +1,6 @@
 # generate_dataset.py — ML Dataset Generation
 
-This script processes all JSON files in `ghidra_output/`, extracts features for each function using OpenAI LLM, and generates a complete CSV dataset for machine learning training.
+This script processes all JSON files in `ghidra_output/`, extracts features for each function using an LLM via OpenRouter, and generates a complete CSV dataset for machine learning training.
 
 ## What it does
 
@@ -10,7 +10,7 @@ This script processes all JSON files in `ghidra_output/`, extracts features for 
 
 2. **Processes each function** in each JSON file:
    - Extracts available features locally from `graph_level`, `advanced_features`, `node_level`, `edge_level`
-   - Calls OpenAI LLM to classify the function and fill missing features
+   - Calls the LLM (via OpenRouter, default `openai/gpt-4`) to classify the function and fill missing features
    - Classifies label as one of: `AES-128`, `AES-192`, `AES-256`, `ECC`, `PRNG`, `RSA-1024`, `RSA-4096`, `SHA-1`, `SHA-224`, `MD5(XOR)`, or `Non-Crypto`
 
 3. **Outputs one CSV row per function** with all columns from `features.txt`:
@@ -29,9 +29,10 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Set your OpenAI API key
+### 2. Set your OpenRouter API key
 ```bash
-export OPENAI_API_KEY="sk-..."
+export OPENROUTER_KEY="sk-or-..."
+# optional: export OPENROUTER_MODEL="openai/gpt-4"
 ```
 Or pass it with `--api-key` flag, or put it in a `.env` file.
 
@@ -60,7 +61,7 @@ python3 generate_dataset.py \
 
 - `--input-dir` : Directory containing JSON files (default: `ghidra_output`)
 - `--output`, `-o` : Output CSV file (default: `dataset_output.csv`)
-- `--api-key` : OpenAI API key (overrides environment)
+- `--api-key` : OpenRouter API key (overrides `OPENROUTER_KEY`)
 - `--batch-size` : Number of functions to process per LLM batch (default: 5, reduce if hitting token limits)
 - `--limit` : Limit number of JSON files to process (useful for testing)
 
@@ -99,7 +100,7 @@ The output CSV contains these columns (from `features.txt`):
 - This is expected; the LLM will infer what it can and leave the rest empty
 
 **API rate limits:**
-- OpenAI may rate-limit requests; the script will log errors and continue
+- OpenRouter may rate-limit requests; the script will log errors and continue
 - For large runs, consider adding retry logic or running in smaller batches with `--limit`
 
 ## Next steps

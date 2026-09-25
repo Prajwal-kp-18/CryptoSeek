@@ -68,7 +68,7 @@ sudo apt install postgresql && sudo -u postgres createdb vestigo
 **Configure .env:**
 ```bash
 DATABASE_URL=postgresql://user:pass@host:5432/vestigo
-OPENAI_API_KEY=sk-your-key-here  # Get from platform.openai.com
+OPENROUTER_KEY=sk-or-your-key-here  # Get from openrouter.ai/keys
 ```
 
 **Initialize Database:**
@@ -151,7 +151,7 @@ vestigo-data/
 | Qiling rootfs missing | `git clone --depth 1 https://github.com/qilingframework/rootfs.git qiling_analysis/rootfs` |
 | Ghidra not found | Set `export GHIDRA_HOME=/opt/ghidra` |
 | Database errors | Check `DATABASE_URL` in `.env`, run `prisma generate` |
-| OpenAI quota exceeded | Check billing at platform.openai.com |
+| OpenRouter credits exhausted | Check credits at openrouter.ai/settings/credits |
 | Frontend won't start | `cd frontend && rm -rf node_modules && npm install` |
 
 ## System Requirements

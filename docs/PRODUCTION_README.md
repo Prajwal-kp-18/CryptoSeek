@@ -5,7 +5,7 @@ Production-ready cryptographic function classifier achieving **87% accuracy** wi
 
 ## 🎯 Features
 - **High Accuracy**: 87% on crypto function classification
-- **Explainable AI**: OpenAI-powered explanations for predictions
+- **Explainable AI**: LLM-powered explanations (via OpenRouter) for predictions
 - **Batch Processing**: Handle multiple binaries efficiently
 - **API Interface**: REST API for integration
 - **Feature Analysis**: Understand what drives predictions
@@ -18,9 +18,9 @@ Production-ready cryptographic function classifier achieving **87% accuracy** wi
 pip install -r requirements_production.txt
 ```
 
-### 2. Set OpenAI API Key (Optional)
+### 2. Set OpenRouter API Key (Optional)
 ```bash
-export OPENAI_API_KEY="your-api-key-here"
+export OPENROUTER_KEY="your-api-key-here"
 ```
 
 ### 3. Run Predictions

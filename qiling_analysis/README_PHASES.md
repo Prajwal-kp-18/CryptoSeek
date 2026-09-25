@@ -44,7 +44,7 @@ Key packages used:
 - qiling-framework (emulation)
 - capstone (disassembly)
 - yara-python (YARA scanning)
-- chromadb / sentence-transformers / openai (for RAG and LLM fusion)
+- chromadb / sentence-transformers / openai (OpenAI SDK used as the OpenRouter client, for RAG and LLM fusion)
 
 
 ## Phase 0 — Preparation & Unpacking
@@ -198,7 +198,7 @@ How it works:
 1. Produce cleaned `analysis_log` (static + qiling summaries).
 2. Optionally index `strace` into the RAG system and retrieve top-k relevant chunks.
 3. Build a prompt that includes both analysis and retrieved strace chunks.
-4. Call the OpenAI client and parse JSON output into `final_report.json`.
+4. Call the LLM via OpenRouter and parse JSON output into `final_report.json`.
 
 Commands:
 ```bash
@@ -212,7 +212,7 @@ python3 rag_analyzer.py --strace ../qiling_analysis/tests/strace_logs/strace_bho
 ```
 
 Notes:
-- Ensure `OPENAI_API_KEY` is set in `rag/.env` or exported in your shell.
+- Ensure `OPENROUTER_KEY` is set in `rag/.env` or exported in your shell.
 - If logs are large, sample or truncate strace to fit token limits before sending to LLM.
 
 
@@ -223,7 +223,7 @@ Notes:
 
 
 ## Troubleshooting and tips
-- "Missing OPENAI_API_KEY": set `rag/.env` or export `OPENAI_API_KEY`.
+- "Missing OPENROUTER_KEY": set `rag/.env` or export `OPENROUTER_KEY`.
 - If Qiling fails to emulate: verify rootfs path returned by `get_rootfs()` matches available `rootfs/`.
 - Large strace files exceeding token limits: sample head+tail or chunk via `rag_indexer` with smaller chunk size.
 - If a result looks incorrect: examine `trace_*.jsonl` for raw evidence (blocks, syscalls) before blaming the LLM.

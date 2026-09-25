@@ -76,7 +76,7 @@ cp .env.example .env   # skip — .env already exists and is filled in
 ```
 Edit `.env` and set at minimum:
 - `DATABASE_URL` — from step 3
-- `OPENAI_API_KEY` — from https://platform.openai.com/api-keys (needed for LLM-assisted analysis features)
+- `OPENROUTER_KEY` — from https://openrouter.ai/keys (needed for LLM-assisted analysis features)
 - `GHIDRA_HOME` — leave as `/opt/ghidra` if `setup.sh` installed it there
 
 Your `.env` already has these filled in — just verify `DATABASE_URL` matches whatever DB you set up in step 3.

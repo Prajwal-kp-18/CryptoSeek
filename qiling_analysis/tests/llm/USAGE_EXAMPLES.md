@@ -94,14 +94,14 @@ When both files are provided, the LLM will:
 
 ## Environment Setup
 
-Make sure your OpenAI API key is configured:
+Make sure your OpenRouter API key is configured:
 
 ```bash
 # In .env file:
-OPENAI_API_KEY="sk-proj-YOUR_ACTUAL_KEY_HERE"
+OPENROUTER_KEY="sk-or-YOUR_ACTUAL_KEY_HERE"
 
 # Or export directly:
-export OPENAI_API_KEY="sk-proj-YOUR_ACTUAL_KEY_HERE"
+export OPENROUTER_KEY="sk-or-YOUR_ACTUAL_KEY_HERE"
 ```
 
 ## Cost Considerations
@@ -109,7 +109,7 @@ export OPENAI_API_KEY="sk-proj-YOUR_ACTUAL_KEY_HERE"
 - **Single file**: ~5,000-20,000 tokens (~$0.01-0.10)
 - **Dual file**: ~10,000-50,000 tokens (~$0.05-0.50)
 
-Actual cost depends on file sizes and model used (gpt-4o by default).
+Actual cost depends on file sizes and model used (openai/gpt-4o via OpenRouter by default).
 
 ## Tips
 
@@ -120,7 +120,7 @@ Actual cost depends on file sizes and model used (gpt-4o by default).
 
 ## Troubleshooting
 
-**Error: "Missing OPENAI_API_KEY"**
+**Error: "Missing OPENROUTER_KEY"**
 - Set your API key in `.env` file or environment variable
 
 **Error: Token limit exceeded**

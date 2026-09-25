@@ -109,7 +109,7 @@ Displays classification & analysis
     "job_id": "...",
     "analysis_timestamp": 1234567890.123,
     "analysis_tool": "llm_crypto_classifier",
-    "model": "gpt-4o",
+    "model": "openai/gpt-4o",
     "strace_log_path": "/path/to/strace.log",
     "status": "completed",
     "llm_classification": {

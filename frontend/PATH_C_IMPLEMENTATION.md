@@ -159,7 +159,7 @@ The implementation was designed to work with the sample job data provided:
 - **Type**: SIMH tape data
 - **Routing**: PATH_C_HARD_TARGET
 - **Crypto Strings**: 1,015 detected out of 7,191 total strings
-- **LLM Model**: sonar (Perplexity)
+- **LLM Model**: perplexity/sonar (via OpenRouter)
 - **Key Findings**: wolfSSL library, AES encryption, RSA, ECDSA, TLS support
 
 ## TypeScript Type Safety
