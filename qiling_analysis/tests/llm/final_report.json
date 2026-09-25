@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-12-08T17:25:30.680221",
+  "source_file": "../strace_logs/strace_aes128_arm_clang_O2_elf_20251208_121831.log",
+  "result": {
+    "metadata": {},
+    "static_analysis": {},
+    "dynamic_analysis": {},
+    "syscalls": {},
+    "warnings": [],
+    "errors": [],
+    "windows": [],
+    "primary_algorithm": "UNKNOWN",
+    "crypto_family": "UNKNOWN",
+    "variant": "UNKNOWN",
+    "mode": "UNKNOWN",
+    "classification": "UNKNOWN",
+    "confidence": 0.0,
+    "summary": "LLM returned invalid or malformed JSON.",
+    "raw_output": "```json\n{\n  \"metadata\": {\n    \"file_format\": \"ELF\",\n    \"architecture\": \"ARM\"\n  },\n  \"static_analysis\": {\n    \"crypto_hits\": [\"AES128\"]\n  },\n  \"dynamic_analysis\": {\n    \"behavior\": \"The binary attempted to execute but failed due to a missing library.\"\n  },\n  \"syscalls\": {\n    \"mmap\": 8,\n    \"getrandom\": 2,\n    \"clone\": 1,\n    \"I/O\": [\n      \"openat\",\n      \"read\",\n      \"write\",\n      \"close\",\n      \"lseek\",\n      \"access\"\n    ]\n  },\n  \"warnings\": [],\n  \"errors\": [\n    \"Could not open '/lib/ld-linux-armhf.so.3': No such file or directory\"\n  ],\n\n  \"windows\": [\n    {\n      \"window_id\": 1,\n      \"algorithm\": \"AES128\",\n      \"crypto_family\": \"SPN\",\n      \"proprietary\": false,\n      \"confidence\": 0.9,\n      \"category\": \"STANDARD_CRYPTO\"\n    }\n  ],\n\n  \"primary_algorithm\": \"AES128\",\n  \"crypto_family\": \"SPN\",\n  \"variant\": \"UNKNOWN\",\n  \"mode\": \"UNKNOWN\",\n  \"classification\": \"STANDARD_CRYPTO\",\n  \"confidence\": 0.9,\n  \"summary\": \"The ELF binary for ARM architecture contains AES128 cryptography, classified as STANDARD_CRYPTO with high confidence. Execution failed due to a missing shared library.\"\n}\n```"
+  }
+}
