@@ -22,6 +22,7 @@ import time
 from collections import defaultdict
 from qiling import Qiling
 from qiling.const import QL_VERBOSE, QL_INTERCEPT
+from qiling.os.posix.syscall.unistd import ql_syscall_read
 
 # ========== OUTPUT CAPTURE CLASS ==========
 class TeeOutput:
@@ -31,6 +32,9 @@ class TeeOutput:
         self.log = open(filepath, 'w', encoding='utf-8')
         
     def write(self, message):
+        # Qiling's emulated write() syscall hands us raw bytes/bytearray from guest memory
+        if isinstance(message, (bytes, bytearray)):
+            message = message.decode('utf-8', errors='replace')
         self.terminal.write(message)
         self.log.write(message)
         
@@ -389,21 +393,23 @@ def hook_syscalls(ql):
             if fd in [ql.os.fd.get('/dev/random'), ql.os.fd.get('/dev/urandom')]:
                 random_data = os.urandom(count)
                 ql.mem.write(buf, random_data)
-                
+
                 syscall_events['random_reads'].append({
                     'size': count,
                     'data': random_data[:32],
                     'source': '/dev/random' if fd == ql.os.fd.get('/dev/random') else '/dev/urandom'
                 })
-                
+
                 print(f"[SYSCALL] read() from random device: {count} bytes")
                 return count
         except:
             pass
-        
-        # If not random device, call original syscall
-        # Return -1 to let Qiling handle it normally
-        return None
+
+        # Not a random device - fall back to the real read() implementation.
+        # set_syscall(..., QL_INTERCEPT.CALL) fully replaces the syscall, so
+        # returning a sentinel here would NOT run Qiling's default handler
+        # (unlike returning None from an ENTER/EXIT hook) - it must be called directly.
+        return ql_syscall_read(ql, fd, buf, count)
     
     # Hook the syscalls
     try:
@@ -823,7 +829,7 @@ def get_rootfs(binary_path):
     rootfs_map = {
         'arm64': "arm64_linux",
         'arm': "arm_linux",
-        'x86_64': "x8664_linux",
+        'x86_64': "x8664_linux_glibc2.39",
         'x86': "x86_linux",
         'mips': "mips32_linux",
         'mips64': "mips32_linux",  # Fallback

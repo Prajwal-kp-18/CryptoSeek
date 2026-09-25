@@ -520,10 +520,14 @@ async def process_qiling_dynamic_analysis(job_id: str, analysis_result: dict):
                 # Update job with Qiling results (store in a separate field)
                 job_manager.update_job_qiling_results(job_id, qiling_results)
                 
-                logger.info(f"Background Qiling analysis completed - JobID: {job_id}")
-                logger.info(f"Qiling verdict: {qiling_results.get('verdict', {}).get('crypto_detected', 'unknown')} "
-                          f"(confidence: {qiling_results.get('verdict', {}).get('confidence', 'N/A')})")
-                
+                if qiling_results.get("status") != "completed":
+                    logger.error(f"Background Qiling analysis failed - JobID: {job_id}, "
+                               f"Status: {qiling_results.get('status')}, Errors: {qiling_results.get('errors')}")
+                else:
+                    logger.info(f"Background Qiling analysis completed - JobID: {job_id}")
+                    logger.info(f"Qiling verdict: {qiling_results.get('verdict', {}).get('crypto_detected', 'unknown')} "
+                              f"(confidence: {qiling_results.get('verdict', {}).get('confidence', 'N/A')})")
+
                 # TRIGGER LLM ANALYSIS if strace logs are available
                 await process_llm_analysis(job_id, binary_path, qiling_results)
             else:
