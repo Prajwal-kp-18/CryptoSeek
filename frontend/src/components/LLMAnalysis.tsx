@@ -602,7 +602,7 @@ export const LLMAnalysisCard = ({ llmData, qilingData, jobId }: LLMAnalysisProps
   const status = llmData.status as string;
   const llmClassification = llmData.llm_classification as Record<string, unknown> | null;
   const qilingContext = llmData.qiling_context as Record<string, unknown> | null;
-  const model = llmData.model as string || 'gpt-4o';
+  const model = llmData.model as string || 'openai/gpt-4o';
   const straceLogPath = llmData.strace_log_path as string;
 
   // Handle disabled or failed status - show fallback

@@ -2,14 +2,14 @@
 """
 generate_dataset.py
 
-Process all JSON files in ghidra_output/, extract features for each function using OpenAI,
+Process all JSON files in ghidra_output/, extract features for each function using an LLM via OpenRouter,
 and generate a complete CSV dataset for ML training.
 
 Filename format: {algorithm}_{architecture}_{compiler}_{optimization}.elf.json
 Output: One CSV row per function with all features from features.txt plus label column.
 
 Usage:
-  export OPENAI_API_KEY="sk-..."
+  export OPENROUTER_KEY="sk-or-..."
   python3 generate_dataset.py --input-dir ghidra_output --output dataset_output.csv
 """
 import os
@@ -152,15 +152,19 @@ def extract_features_from_function(func_data):
     return features
 
 
-def call_openai_for_classification(func_data, metadata, extracted_features, api_key=None):
+OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
+OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'openai/gpt-4')
+
+
+def call_llm_for_classification(func_data, metadata, extracted_features, api_key=None):
     """
-    Call OpenAI to classify the function and fill any missing features.
+    Call the LLM (via OpenRouter) to classify the function and fill any missing features.
     
     Returns a dict with all feature columns filled (or empty string if unavailable).
     """
-    key = api_key or os.getenv('OPENAI_API_KEY')
+    key = api_key or os.getenv('OPENROUTER_KEY')
     if not key:
-        raise RuntimeError('OPENAI_API_KEY not set')
+        raise RuntimeError('OPENROUTER_KEY not set')
     
     # Decide which client to use
     use_new = hasattr(openai, 'OpenAI') and hasattr(openai, '__version__') and int(openai.__version__.split('.')[0]) >= 1
@@ -213,9 +217,9 @@ Rules:
     
     try:
         if use_new:
-            client = openai.OpenAI(api_key=key)
+            client = openai.OpenAI(api_key=key, base_url=OPENROUTER_BASE_URL)
             resp = client.chat.completions.create(
-                model='gpt-4',
+                model=OPENROUTER_MODEL,
                 messages=messages,
                 temperature=0.0,
                 max_tokens=1500
@@ -223,8 +227,9 @@ Rules:
             content = resp.choices[0].message.content
         else:
             openai.api_key = key
+            openai.api_base = OPENROUTER_BASE_URL
             resp = openai.ChatCompletion.create(
-                model='gpt-4',
+                model=OPENROUTER_MODEL,
                 messages=messages,
                 temperature=0.0,
                 max_tokens=1500
@@ -242,7 +247,7 @@ Rules:
         return result
     
     except Exception as e:
-        logger.error('OpenAI call failed: %s', str(e).splitlines()[0])
+        logger.error('OpenRouter call failed: %s', str(e).splitlines()[0])
         # Return a default dict with label=Non-Crypto and features empty
         return {'label': 'Non-Crypto', 'features': {}}
 
@@ -281,7 +286,7 @@ def process_file(json_path, api_key=None, batch_size=5):
             
             # Call LLM for classification + missing features
             try:
-                llm_result = call_openai_for_classification(func, metadata, local_features, api_key=api_key)
+                llm_result = call_llm_for_classification(func, metadata, local_features, api_key=api_key)
             except Exception as e:
                 logger.error('LLM call failed for function %s: %s', func.get('name'), str(e).splitlines()[0])
                 llm_result = {'label': 'Non-Crypto', 'features': {}}
@@ -325,7 +330,7 @@ def main():
     parser = argparse.ArgumentParser(description='Generate ML dataset CSV from ghidra_output JSONs')
     parser.add_argument('--input-dir', default='ghidra_output', help='Directory containing JSON files')
     parser.add_argument('--output', '-o', default='dataset_output.csv', help='Output CSV file')
-    parser.add_argument('--api-key', default=None, help='OpenAI API key')
+    parser.add_argument('--api-key', default=None, help='OpenRouter API key (overrides OPENROUTER_KEY)')
     parser.add_argument('--batch-size', type=int, default=5, help='Functions per LLM call batch')
     parser.add_argument('--limit', type=int, default=None, help='Limit number of files to process (for testing)')
     args = parser.parse_args()

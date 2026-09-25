@@ -750,15 +750,13 @@ setup_environment() {
 DATABASE_URL=postgresql://user:password@localhost:5432/vestigo
 
 # ============================================================================
-# REQUIRED: OpenAI API Configuration (for LLM-assisted analysis)
+# REQUIRED: OpenRouter API Configuration (for LLM-assisted analysis)
 # ============================================================================
-# Get your API key from: https://platform.openai.com/api-keys
-OPENAI_API_KEY=your_openai_api_key_here
-
-# ============================================================================
-# OPTIONAL: Perplexity API Configuration
-# ============================================================================
-PERPLEXITY_API_KEY=your_perplexity_api_key_here
+# Get your API key from: https://openrouter.ai/keys
+OPENROUTER_KEY=your_openrouter_key_here
+# Optional model overrides (OpenRouter model ids)
+# OPENROUTER_MODEL=openai/gpt-4o
+# OPENROUTER_CRYPTO_STRINGS_MODEL=perplexity/sonar
 
 # ============================================================================
 # System Configuration (Auto-configured)
@@ -995,8 +993,7 @@ ${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━�
   2. Configure your .env file:
      ${YELLOW}nano .env${NC}
      ${RED}REQUIRED:${NC} Set your DATABASE_URL (PostgreSQL connection string)
-     ${RED}REQUIRED:${NC} Set your OPENAI_API_KEY
-     ${YELLOW}OPTIONAL:${NC} Set your PERPLEXITY_API_KEY
+     ${RED}REQUIRED:${NC} Set your OPENROUTER_KEY
      
   3. Run the backend:
      ${YELLOW}cd backend && uvicorn main:app --reload${NC}

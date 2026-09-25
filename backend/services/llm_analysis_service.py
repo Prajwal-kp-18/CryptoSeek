@@ -1,6 +1,6 @@
 """
 LLM Analysis Service for Vestigo Backend
-Integrates OpenAI GPT-4 to analyze strace logs for crypto detection
+Integrates LLMs via OpenRouter to analyze strace logs for crypto detection
 Based on qiling_analysis/tests/llm/engine.py
 """
 
@@ -23,22 +23,25 @@ class LLMAnalysisService:
     
     This service:
     1. Takes strace logs and qiling analysis results
-    2. Sends them to OpenAI GPT for intelligent crypto detection
+    2. Sends them to an LLM (via OpenRouter) for intelligent crypto detection
     3. Returns structured analysis with algorithm identification and confidence scores
     """
     
     def __init__(self):
-        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.api_key = os.getenv("OPENROUTER_KEY")
         if not self.api_key:
-            logger.warning("OPENAI_API_KEY not found in environment - LLM analysis disabled")
+            logger.warning("OPENROUTER_KEY not found in environment - LLM analysis disabled")
             self.enabled = False
         else:
-            self.client = OpenAI(api_key=self.api_key)
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
             self.enabled = True
-            logger.info("LLMAnalysisService initialized with OpenAI API")
+            logger.info("LLMAnalysisService initialized with OpenRouter API")
         
         # Model configuration
-        self.model = os.getenv("OPENAI_MODEL", "gpt-4o")
+        self.model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")
         self.max_tokens = 4096
         self.temperature = 0
         
@@ -255,7 +258,7 @@ STRACE LOG:
         return base_prompt
     
     async def _call_llm(self, prompt: str) -> Dict[str, Any]:
-        """Call OpenAI API with the constructed prompt"""
+        """Call OpenRouter API with the constructed prompt"""
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -274,7 +277,7 @@ STRACE LOG:
             return json.loads(response.choices[0].message.content)
             
         except Exception as e:
-            logger.error(f"OpenAI API call failed: {str(e)}")
+            logger.error(f"OpenRouter API call failed: {str(e)}")
             raise
     
     def _create_disabled_result(self, job_id: str) -> Dict[str, Any]:
@@ -284,7 +287,7 @@ STRACE LOG:
             "analysis_timestamp": time.time(),
             "analysis_tool": "llm_crypto_classifier",
             "status": "disabled",
-            "error": "LLM analysis disabled - OPENAI_API_KEY not configured",
+            "error": "LLM analysis disabled - OPENROUTER_KEY not configured",
             "llm_classification": None
         }
     

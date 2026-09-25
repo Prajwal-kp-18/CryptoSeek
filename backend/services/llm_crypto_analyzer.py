@@ -1,6 +1,6 @@
 """
 LLM Crypto Analyzer Service
-Sends crypto string detection results to Perplexity LLM for structured analysis
+Sends crypto string detection results to an LLM (via OpenRouter) for structured analysis
 """
 
 import os
@@ -11,7 +11,7 @@ from config.logging_config import logger
 
 
 class LLMCryptoAnalyzer:
-    """Service for analyzing crypto strings using Perplexity LLM"""
+    """Service for analyzing crypto strings using an LLM via OpenRouter"""
     
     # Structured JSON schema that LLM must follow - based on user requirements
     RESPONSE_SCHEMA = {
@@ -116,19 +116,20 @@ Return ONLY the JSON object, nothing else."""
 
     
     def __init__(self, api_key: Optional[str] = None):
-        """Initialize LLM analyzer with Perplexity client"""
-        self.api_key = api_key or os.environ.get("PERPLEXITY_API_KEY")
+        """Initialize LLM analyzer with OpenRouter client"""
+        self.api_key = api_key or os.environ.get("OPENROUTER_KEY")
+        self.model = os.environ.get("OPENROUTER_CRYPTO_STRINGS_MODEL", "perplexity/sonar")
         
         if not self.api_key:
-            logger.warning("Perplexity API key not found. LLM analysis will be disabled.")
+            logger.warning("OPENROUTER_KEY not found. LLM analysis will be disabled.")
             self.client = None
         else:
-            # Initialize OpenAI client with Perplexity endpoint
+            # Initialize OpenAI-compatible client with OpenRouter endpoint
             self.client = OpenAI(
                 api_key=self.api_key,
-                base_url="https://api.perplexity.ai"
+                base_url="https://openrouter.ai/api/v1"
             )
-            logger.info("LLM Crypto Analyzer initialized with Perplexity")
+            logger.info("LLM Crypto Analyzer initialized with OpenRouter")
     
     def analyze_crypto_strings(
         self, 
@@ -152,8 +153,8 @@ Return ONLY the JSON object, nothing else."""
         log_prefix = f"JobID: {job_id} - " if job_id else ""
         
         if not self.client:
-            logger.warning(f"{log_prefix}LLM analysis skipped - Perplexity client not initialized")
-            return {"status": "skipped", "reason": "Perplexity API key not configured"}
+            logger.warning(f"{log_prefix}LLM analysis skipped - OpenRouter client not initialized")
+            return {"status": "skipped", "reason": "OPENROUTER_KEY not configured"}
         
         if not crypto_strings:
             logger.info(f"{log_prefix}No crypto strings to analyze")
@@ -165,9 +166,9 @@ Return ONLY the JSON object, nothing else."""
             # Prepare prompt with data
             prompt = self._prepare_prompt(crypto_strings, binary_name, file_type)
             
-            # Call Perplexity API (using OpenAI SDK format)
+            # Call OpenRouter API (using OpenAI SDK format)
             response = self.client.chat.completions.create(
-                model="sonar",  # Perplexity's sonar model
+                model=self.model,
                 messages=[
                     {
                         "role": "system",
@@ -179,8 +180,7 @@ Return ONLY the JSON object, nothing else."""
                     }
                 ],
                 temperature=0.1,  # Low temperature for consistent structured output
-                max_tokens=4000,  # Increased for complete responses
-                response_format={"type": "json_object"} if "sonar" not in "sonar" else None  # Request JSON mode if supported
+                max_tokens=4000  # Increased for complete responses
             )
             
             # Parse response
@@ -221,7 +221,7 @@ Return ONLY the JSON object, nothing else."""
             
             # Add metadata
             result["status"] = "success"
-            result["llm_model"] = "sonar"
+            result["llm_model"] = self.model
             result["tokens_used"] = response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else 0
             
             logger.info(f"{log_prefix}LLM analysis complete - Tokens: {result['tokens_used']}")

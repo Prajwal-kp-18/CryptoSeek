@@ -134,14 +134,14 @@
 # # LLM call for STRACE ONLY
 # # -----------------------------------------
 # def call_llm(prompt: str) -> Dict[str, Any]:
-#     api_key = os.getenv("OPENAI_API_KEY")
+#     api_key = os.getenv("OPENROUTER_KEY")
 #     if not api_key:
-#         raise RuntimeError("Missing OPENAI_API_KEY")
+#         raise RuntimeError("Missing OPENROUTER_KEY")
 
-#     client = OpenAI(api_key=api_key)
+#     client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
 
 #     response = client.chat.completions.create(
-#         model="gpt-4o-mini",
+#         model="openai/gpt-4o-mini",
 
 
 #         messages=[
@@ -337,14 +337,14 @@ STRACE LOG:
 # LLM call for STRACE ONLY
 # -----------------------------------------
 def call_llm(prompt: str) -> Dict[str, Any]:
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENROUTER_KEY")
     if not api_key:
-        raise RuntimeError("Missing OPENAI_API_KEY")
+        raise RuntimeError("Missing OPENROUTER_KEY")
 
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
 
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model=os.getenv("OPENROUTER_MODEL", "openai/gpt-4o"),
         messages=[
             {"role": "system", "content": "You must return ONLY valid JSON that strictly follows the requested schema."},
             {"role": "user", "content": prompt}

@@ -70,7 +70,7 @@ jobs:
     - name: Set up test environment
       run: |
         echo "DATABASE_URL=postgresql://testuser:testpassword@localhost:5432/vestigo_test" >> $GITHUB_ENV
-        echo "OPENAI_API_KEY=test_key_for_ci" >> $GITHUB_ENV
+        echo "OPENROUTER_KEY=test_key_for_ci" >> $GITHUB_ENV
 
     - name: Run Prisma generate
       working-directory: backend

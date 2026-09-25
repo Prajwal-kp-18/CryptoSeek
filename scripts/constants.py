@@ -11,7 +11,7 @@ DEFAULT_FEATURES_CSV = 'features.csv'
 DEFAULT_OUTPUT = 'classified_out.csv'
 
 # LLM and batching defaults
-DEFAULT_MODEL = 'gpt-4'
+DEFAULT_MODEL = 'openai/gpt-4'  # OpenRouter model id
 DEFAULT_BATCH_SIZE = 5
 DEFAULT_MAX_TOKENS = 1500
 
