@@ -1,0 +1,200 @@
+name: Documentation Issue
+description: Report an issue with documentation or request documentation improvements
+title: "[Docs]: "
+labels: ["documentation", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve Vestigo's documentation! Good documentation is crucial for user adoption and contributor onboarding.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have checked the current documentation in the repository
+          required: true
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation issue is this?
+      options:
+        - Missing Documentation
+        - Incorrect/Outdated Information
+        - Unclear Instructions
+        - Broken Links
+        - Formatting Issues
+        - Translation Request
+        - API Documentation
+        - Installation Guide
+        - Usage Examples
+        - Developer Documentation
+        - Architecture Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-docs
+    attributes:
+      label: Affected Documentation
+      description: Which documentation is affected?
+      options:
+        - README.md
+        - Installation/Setup Guide
+        - API Documentation
+        - User Guide
+        - Developer Guide
+        - Architecture Documentation
+        - Contributing Guidelines
+        - Security Documentation
+        - FAQ
+        - Code Comments
+        - Inline Help/Tooltips
+        - Other/Multiple
+    validations:
+      required: true
+
+  - type: input
+    id: doc-location
+    attributes:
+      label: Documentation Location
+      description: Specific file path or URL where the issue is located
+      placeholder: "e.g., docs/API_FIXES_SUMMARY.md, backend/README.md, or https://..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: Describe the documentation issue in detail
+      placeholder: |
+        - What specific information is missing, incorrect, or unclear?
+        - What difficulty did you encounter?
+        - What were you trying to accomplish?
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-content
+    attributes:
+      label: Current Content (if applicable)
+      description: Quote the current documentation content that has issues
+      placeholder: "Paste the current text that needs to be improved..."
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected-content
+    attributes:
+      label: Expected Content
+      description: What should the documentation say instead?
+      placeholder: |
+        - What information should be added?
+        - How should existing content be corrected?
+        - What examples would be helpful?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target-audience
+    attributes:
+      label: Target Audience
+      description: Who is the primary audience for this documentation?
+      multiple: true
+      options:
+        - New Users
+        - Advanced Users
+        - Developers/Contributors
+        - System Administrators
+        - Security Researchers
+        - API Users
+        - All Users
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this documentation improvement?
+      options:
+        - Critical (Blocking users from basic functionality)
+        - High (Significantly improves user experience)
+        - Medium (Helpful improvement)
+        - Low (Nice to have)
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-impact
+    attributes:
+      label: User Impact
+      description: How does this documentation issue affect users?
+      placeholder: |
+        - What problems does it cause for users?
+        - How many users might be affected?
+        - What workarounds are currently needed?
+    validations:
+      required: false
+
+  - type: textarea
+    id: suggested-solution
+    attributes:
+      label: Suggested Solution
+      description: Do you have suggestions for how to fix this?
+      placeholder: |
+        - Specific text suggestions
+        - Structure improvements
+        - Additional sections needed
+        - Examples to include
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution-offer
+    attributes:
+      label: Contribution Offer
+      description: Are you willing to help improve this documentation?
+      options:
+        - label: I can write/update the content
+          required: false
+        - label: I can review proposed changes
+          required: false
+        - label: I can provide examples or use cases
+          required: false
+        - label: I can help with proofreading
+          required: false
+        - label: I can create diagrams or illustrations
+          required: false
+
+  - type: textarea
+    id: related-issues
+    attributes:
+      label: Related Issues
+      description: Are there related issues or pull requests?
+      placeholder: "Link to related issues, discussions, or PRs..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other context that would be helpful
+      placeholder: |
+        - Screenshots of confusing sections
+        - Your experience level with the project
+        - Specific use case you were trying to accomplish
+        - Other documentation that handles this well
+    validations:
+      required: false

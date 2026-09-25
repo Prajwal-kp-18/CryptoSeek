@@ -1,0 +1,189 @@
+name: Security Vulnerability Report
+description: Report a security vulnerability in Vestigo (Private reporting recommended)
+title: "[Security]: "
+labels: ["security", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **IMPORTANT SECURITY NOTICE** ⚠️
+        
+        If this is a sensitive security vulnerability that could be exploited, please consider using GitHub's private vulnerability reporting feature instead of creating a public issue.
+        
+        Go to the **Security** tab → **Report a vulnerability** for private reporting.
+        
+        Only use this public template for:
+        - General security hardening suggestions
+        - Non-exploitable security improvements
+        - Security documentation issues
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Security Reporting Guidelines
+      description: Please confirm your understanding
+      options:
+        - label: I understand this issue will be public and have verified it's not a sensitive vulnerability
+          required: true
+        - label: I have read the project's security policy (if available)
+          required: false
+        - label: I have not disclosed this information publicly elsewhere
+          required: true
+
+  - type: dropdown
+    id: security-type
+    attributes:
+      label: Security Issue Type
+      description: What type of security issue is this?
+      options:
+        - Security Hardening Suggestion
+        - Dependency Vulnerability (Non-Critical)
+        - Configuration Security Improvement
+        - Documentation Security Issue
+        - CI/CD Security Enhancement
+        - Access Control Improvement
+        - Input Validation Enhancement
+        - Other Security Enhancement
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity Assessment
+      description: How would you rate the severity? (Use private reporting for High/Critical)
+      options:
+        - Low (Minor security improvement)
+        - Medium (Moderate security concern)
+        - High (Should use private reporting)
+        - Critical (Should use private reporting)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which component is affected?
+      options:
+        - Backend API
+        - Frontend UI
+        - Docker Configuration
+        - CI/CD Pipeline
+        - Dependencies
+        - Documentation
+        - Setup/Installation Scripts
+        - Configuration Files
+        - Multiple Components
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Security Issue Description
+      description: Describe the security concern or improvement suggestion
+      placeholder: "Provide a clear description of the security issue or enhancement..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential Impact
+      description: What could be the potential impact if this issue is not addressed?
+      placeholder: |
+        - Who could be affected?
+        - What data could be at risk?
+        - What operations could be compromised?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Demonstrate (if applicable)
+      description: If this is demonstrable, provide steps (avoid including exploit code)
+      placeholder: |
+        1. Configure the system with...
+        2. Access the endpoint/feature...
+        3. Observe the security concern...
+        
+        (DO NOT include actual exploit code or sensitive details)
+    validations:
+      required: false
+
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommended Solution
+      description: What do you recommend to address this security concern?
+      placeholder: |
+        - Suggested code changes (general approach)
+        - Configuration improvements
+        - Additional security controls
+        - Best practices to implement
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Security References
+      description: Any relevant security guidelines, standards, or documentation
+      placeholder: |
+        - OWASP guidelines
+        - CVE references (if applicable)
+        - Security best practices documentation
+        - Related security advisories
+    validations:
+      required: false
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: In what environment was this identified?
+      options:
+        - Development
+        - Testing/Staging
+        - Production
+        - Documentation Review
+        - Code Review
+        - Automated Security Scan
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Temporary Mitigation
+      description: Are there any temporary workarounds or mitigations available?
+      placeholder: "Describe any temporary measures that can reduce risk..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: disclosure
+    attributes:
+      label: Responsible Disclosure
+      description: Disclosure commitment
+      options:
+        - label: I commit to not publicly disclose details until a fix is available
+          required: true
+        - label: I will work with maintainers to verify any proposed fixes
+          required: false
+        - label: I am available for follow-up questions via GitHub or email
+          required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other relevant security context
+      placeholder: "Provide any additional security-relevant information..."
+    validations:
+      required: false

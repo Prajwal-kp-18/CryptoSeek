@@ -1,0 +1,82 @@
+name: Stale Issue Management
+
+on:
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday at 9 AM UTC
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-22.04
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+    - uses: actions/stale@v9
+      with:
+        stale-issue-message: |
+          This issue has been automatically marked as stale because it has not had any activity for 60 days.
+          
+          If this issue is still relevant and you're still experiencing this problem:
+          - Please add a comment to keep it open
+          - Provide any additional context or updates
+          - If applicable, test with the latest version of Vestigo
+          
+          This issue will be automatically closed in 14 days if no further activity occurs.
+          
+          Thank you for your contribution to Vestigo! 🚀
+          
+        stale-pr-message: |
+          This pull request has been automatically marked as stale because it has not had any activity for 30 days.
+          
+          If this PR is still relevant and should be merged:
+          - Please rebase on the latest main branch
+          - Address any merge conflicts
+          - Respond to any outstanding review comments
+          - Add a comment to keep it open
+          
+          This PR will be automatically closed in 14 days if no further activity occurs.
+          
+          Thank you for your contribution to Vestigo! 🚀
+          
+        close-issue-message: |
+          This issue has been automatically closed due to inactivity. 
+          
+          If you believe this issue is still relevant, please:
+          - Reopen the issue
+          - Provide additional context or reproduction steps
+          - Test with the latest version of Vestigo
+          
+          Thank you for your understanding and contribution to Vestigo! 🚀
+          
+        close-pr-message: |
+          This pull request has been automatically closed due to inactivity.
+          
+          If you'd like to continue working on this:
+          - Feel free to reopen this PR
+          - Create a fresh PR with updated changes
+          - Ensure it's rebased on the latest main branch
+          
+          Thank you for your contribution to Vestigo! 🚀
+          
+        days-before-issue-stale: 60
+        days-before-pr-stale: 30
+        days-before-issue-close: 14
+        days-before-pr-close: 14
+        
+        stale-issue-label: 'stale'
+        stale-pr-label: 'stale'
+        
+        exempt-issue-labels: 'security,critical,pinned,long-term,roadmap'
+        exempt-pr-labels: 'security,critical,pinned,long-term,roadmap,work-in-progress,blocked'
+        
+        # Don't mark issues stale if they have these labels
+        exempt-all-issue-assignees: false
+        exempt-all-pr-assignees: true
+        
+        operations-per-run: 100
+        remove-stale-when-updated: true
+        
+        # Enable debug output
+        debug-only: false
