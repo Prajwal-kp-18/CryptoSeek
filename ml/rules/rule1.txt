@@ -1,0 +1,167 @@
+crypto_detection_rules:
+
+  # -------------------------------------------------
+  # AES (Table-based AES)
+  # -------------------------------------------------
+  - rule:
+      name: AES Detection
+      canonical_primitive: AES
+      priority: 1
+
+      detect_if:
+        any_of:
+          # Direct signatures
+          - has_aes_sbox: true
+          - has_aes_rcon: true
+
+          # Behavioral features
+          - all_of:
+              - table_lookup_presence: true
+              - crypto_constant_hits: ">=1"
+
+              # AES-like op patterns
+              - avg_add_ratio: ">=0.15"
+              - avg_xor_ratio: ">=0.01"
+
+      ml_features:
+        node: [table_lookup_presence, crypto_constant_hits, bitwise_op_density]
+        function: [num_basic_blocks, loop_count]
+        metadata: [architecture, compiler, optimization]
+
+
+  # -------------------------------------------------
+  # SHA (SHA-1 / SHA-224 / SHA-256 indistinguishable in your data)
+  # -------------------------------------------------
+  - rule:
+      name: SHA Detection
+      canonical_primitive: SHA
+      priority: 1
+
+      detect_if:
+        any_of:
+          - has_sha_constants: true
+
+          # SHA-like rotate + add + xor pattern
+          - all_of:
+              - avg_rotate_ratio: ">=0.02"
+              - avg_add_ratio: ">=0.02"
+              - loop_count: ">=1"
+
+      ml_features:
+        node: [bitwise_op_density, rotate_ratio, add_ratio]
+        function: [loop_count, cyclomatic_complexity]
+
+
+  # -------------------------------------------------
+  # RSA (big integer ops)
+  # -------------------------------------------------
+  - rule:
+      name: RSA Detection
+      canonical_primitive: RSA
+      priority: 1
+
+      detect_if:
+        any_of:
+          # direct signature
+          - rsa_bigint_detected: true
+
+          # heuristic: high arithmetic + carry/borrow ops
+          - all_of:
+              - arithmetic_ops: ">=200"
+              - bitwise_ops: ">=10"
+
+      ml_features:
+        node: [instruction_count, bitwise_op_density]
+        function: [cyclomatic_complexity, num_edges]
+        algorithm_specific: [rsa_bigint_detected]
+
+
+  # -------------------------------------------------
+  # ECC (weak detection, based on available features)
+  # -------------------------------------------------
+  - rule:
+      name: ECC Detection
+      canonical_primitive: ECC
+      priority: 2
+
+      detect_if:
+        all_of:
+          - arithmetic_ops: ">=150"
+          - bitwise_ops: ">=20"
+          - avg_xor_ratio: "<0.01"     # ECC rarely uses XOR
+          - table_lookup_presence: false
+          - has_sha_constants: false
+          - has_aes_sbox: false
+          - rsa_bigint_detected: false
+
+      ml_features:
+        node: [arithmetic_ops, bitwise_op_density]
+        function: [cyclomatic_complexity]
+
+
+  # -------------------------------------------------
+  # XOR / MDS Encryption
+  # -------------------------------------------------
+  - rule:
+      name: XOR/MDS Detection
+      canonical_primitive: XOR
+      priority: 2
+
+      detect_if:
+        any_of:
+          - xor_ratio: ">=0.08"
+          - all_of:
+              - xor_ratio: ">=0.03"
+              - loop_count: ">=1"
+              - bitwise_op_density: ">=0.05"
+
+      ml_features:
+        node: [xor_ratio, bitwise_op_density]
+        function: [loop_count]
+
+
+  # -------------------------------------------------
+  # PRNG (Heuristic)
+  # -------------------------------------------------
+  - rule:
+      name: PRNG Detection
+      canonical_primitive: PRNG
+      priority: 3
+
+      detect_if:
+        all_of:
+          - function_byte_entropy: ">=4.0"
+          - opcode_entropy: ">=3.5"
+
+          # PRNGs usually have low structure
+          - cyclomatic_complexity: "<3"
+          - strongly_connected_components: "<3"
+
+          # but do not use AES or SHA constants
+          - has_aes_sbox: false
+          - has_sha_constants: false
+
+      ml_features:
+        node: [instruction_count, immediate_entropy]
+        function: [entropy_metrics]
+
+
+  # -------------------------------------------------
+  # NON-CRYPTO (fallback)
+  # -------------------------------------------------
+  - rule:
+      name: Non-Crypto
+      canonical_primitive: Non-Crypto
+      priority: 10
+
+      detect_if:
+        all_of:
+          - has_aes_sbox: false
+          - has_aes_rcon: false
+          - has_sha_constants: false
+          - rsa_bigint_detected: false
+
+          # Low crypto-like structure
+          - xor_ratio: "<0.03"
+          - table_lookup_presence: false
+          - crypto_constant_hits: "<1"
