@@ -1,6 +1,6 @@
-# Vestigo: Firmware analysis & crypto-detection pipeline
+# CryptoSeek: Firmware analysis & crypto-detection pipeline
 
-Vestigo is a collection of tools, scripts and services to automate
+CryptoSeek is a collection of tools, scripts and services to automate
 the process of (1) producing cross-compiled test binaries, (2)
 statically and dynamically analyzing firmware/binaries, (3)
 extracting ML-ready features, and (4)
