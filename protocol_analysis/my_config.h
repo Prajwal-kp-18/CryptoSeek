@@ -1,0 +1,43 @@
+#ifndef MBEDTLS_CONFIG_H
+#define MBEDTLS_CONFIG_H
+
+#define MBEDTLS_PLATFORM_C
+#include <limits.h>
+#ifndef INT_MAX
+#define INT_MAX 2147483647
+#endif
+#ifndef SIZE_MAX
+#define SIZE_MAX 4294967295U
+#endif
+
+#define MBEDTLS_MEMORY_BUFFER_ALLOC_C
+#define MBEDTLS_NO_PLATFORM_ENTROPY
+#define MBEDTLS_CTR_DRBG_C
+#define MBEDTLS_SSL_CLI_C
+#define MBEDTLS_SSL_PROTO_TLS1_2
+#define MBEDTLS_CIPHER_AES_C
+#define MBEDTLS_AES_C
+#define MBEDTLS_PLATFORM_MEMORY
+#define MBEDTLS_MD_SHA256_C
+#define MBEDTLS_SHA256_C
+#define MBEDTLS_MD_C
+#define MBEDTLS_CIPHER_C
+#define MBEDTLS_SSL_TLS_C
+#define MBEDTLS_BIGNUM_C
+#define MBEDTLS_PK_C
+#define MBEDTLS_ASN1_PARSE_C
+#define MBEDTLS_ASN1_WRITE_C
+#define MBEDTLS_OID_C
+#define MBEDTLS_ENTROPY_HARDWARE_ALT
+#define MBEDTLS_SSL_MAX_CONTENT_LEN 1024
+
+// Disable features to save space
+#undef MBEDTLS_X509_CRT_PARSE_C
+#undef MBEDTLS_PEM_PARSE_C
+#undef MBEDTLS_FS_IO
+#undef MBEDTLS_NET_C
+#undef MBEDTLS_TIMING_C
+
+// #include "mbedtls/check_config.h"
+
+#endif /* MBEDTLS_CONFIG_H */
