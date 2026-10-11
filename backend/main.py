@@ -98,15 +98,20 @@ db = Prisma()
 @app.on_event("startup")
 async def startup():
     logger.info("🔌 Connecting to database…")
-    await db.connect()
-    logger.info("✅ Database connected.")
+    try:
+        await db.connect()
+        logger.info("✅ Database connected.")
+    except Exception as e:
+        # The analysis pipeline stores jobs in job_storage/, only the legacy /jobs/{id} endpoints need the DB
+        logger.warning(f"⚠️ Database unavailable, legacy /jobs/{{id}} endpoints disabled: {e}")
     logger.info("🚀 Vestigo Backend ready")
 
 
 @app.on_event("shutdown")
 async def shutdown():
     logger.info("🔌 Disconnecting database…")
-    await db.disconnect()
+    if db.is_connected():
+        await db.disconnect()
     logger.info("🛑 Database disconnected.")
     logger.info("👋 Vestigo Backend shutdown complete")
 
@@ -182,7 +187,7 @@ def collect_job_analysis_data(job_id: str) -> Dict[str, Any]:
     # Paths for different output locations
     job_storage_dir = Path("job_storage")
     qiling_output_dir = Path("qiling_output") 
-    pipeline_output_dir = Path("pipeline_output")
+    pipeline_output_dir = Path(__file__).resolve().parent.parent / "pipeline_output"  # written by FeatureExtractionService at project root
     
     try:
         # Load job storage data
@@ -276,26 +281,6 @@ def collect_job_analysis_data(job_id: str) -> Dict[str, Any]:
         logger.error(f"Error collecting analysis data for job {job_id}: {e}", exc_info=True)
     
     return analysis_data
-
-
-def wait_for_job_completion(job_id: str, max_wait_seconds: int = 30) -> Dict[str, Any]:
-    """
-    Wait for background job completion and return updated analysis data.
-    This allows the API to return more complete data when possible.
-    """
-    import time
-    
-    start_time = time.time()
-    while (time.time() - start_time) < max_wait_seconds:
-        job = job_manager.get_job(job_id)
-        if job and job.status in [JobStatus.COMPLETE, JobStatus.FAILED, JobStatus.FEATURES_COMPLETE]:
-            logger.info(f"Job {job_id} completed after {time.time() - start_time:.2f}s with status: {job.status}")
-            return collect_job_analysis_data(job_id)
-        
-        time.sleep(0.5)  # Check every 500ms
-    
-    logger.info(f"Job {job_id} still processing after {max_wait_seconds}s, returning current data")
-    return collect_job_analysis_data(job_id)
 
 
 # ==========================================================
@@ -397,9 +382,9 @@ async def upload_and_analyze(background_tasks: BackgroundTasks, file: UploadFile
 
         logger.info(f"Analysis initiated successfully - JobID: {job_id}")
         
-        # Wait for some processing to complete and collect comprehensive analysis data
-        # This gives the frontend immediate access to job storage data and any completed analysis
-        complete_analysis_data = wait_for_job_completion(job_id, max_wait_seconds=15)
+        # Background tasks only start after this response is sent, so return what is available now;
+        # the frontend polls /job/{job_id}/complete-analysis for pipeline progress
+        complete_analysis_data = collect_job_analysis_data(job_id)
         
         # Enhance the original response with comprehensive data
         enhanced_response = {
@@ -899,7 +884,7 @@ async def get_complete_analysis_data(job_id: str):
             "has_ml_classification": bool(
                 complete_data["job_storage_data"] and 
                 complete_data["job_storage_data"].get("feature_extraction_results") and
-                complete_data["job_storage_data"]["feature_extraction_results"].get("ml_classification")
+                (complete_data["job_storage_data"]["feature_extraction_results"].get("ml_classification") or {}).get("status") == "completed"
             ),
             "has_qiling_analysis": bool(complete_data.get("qiling_output")),
             "analysis_complete": job and job.status in [JobStatus.COMPLETE, JobStatus.FEATURES_COMPLETE] if job else False

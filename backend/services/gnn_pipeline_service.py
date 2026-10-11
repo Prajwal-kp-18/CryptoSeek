@@ -3,8 +3,10 @@ GNN Pipeline Service for Vestigo Backend
 Runs Graph Neural Network model for cryptographic function detection
 """
 
+import asyncio
 import os
 import subprocess
+import sys
 import json
 from typing import Dict, Any
 from pathlib import Path
@@ -40,11 +42,11 @@ class GNNPipelineService:
         self.qiling_venv = self.project_root / "qiling_analysis" / "qiling_env"
         self.python_executable = self.qiling_venv / "bin" / "python3"
         
-        # Fallback to system python3 if venv doesn't exist
+        # Fallback to the backend's own interpreter (same venv as the backend deps) if the Qiling venv doesn't exist
         if not os.path.exists(self.python_executable):
             logger.warning(f"Qiling venv Python not found at {self.python_executable}")
-            logger.warning("Using system python3 instead")
-            self.python_executable = "python3"
+            logger.warning(f"Using backend interpreter instead: {sys.executable}")
+            self.python_executable = sys.executable
         
         # Check if GNN script and models exist
         if not os.path.exists(self.gnn_script):
@@ -85,11 +87,12 @@ class GNNPipelineService:
             }
         
         # Check if models exist
-        if not os.path.exists(self.model_path) or not os.path.exists(self.metadata_path):
-            logger.warning(f"GNN models not found, skipping GNN analysis - JobID: {job_id}")
+        missing = [str(p) for p in (self.model_path, self.metadata_path) if not os.path.exists(p)]
+        if missing:
+            logger.warning(f"GNN model files missing, skipping GNN analysis - JobID: {job_id}, Missing: {missing}")
             return {
                 "status": "skipped",
-                "reason": "GNN models not found"
+                "reason": f"GNN model files not found: {', '.join(missing)}"
             }
         
         # Create output path for GNN results
@@ -113,7 +116,8 @@ class GNNPipelineService:
             start_time = time.time()
             
             # Run GNN inference
-            result = subprocess.run(
+            result = await asyncio.to_thread(
+                subprocess.run,
                 gnn_cmd,
                 capture_output=True,
                 text=True,
@@ -194,67 +198,50 @@ class GNNPipelineService:
             "model_type": "graph_neural_network"
         }
         
-        # Extract function-level predictions
+        # new_gnn.py writes crypto_functions / non_crypto_functions entries with
+        # "algorithm" and "graph_stats", plus a "statistics" block
         function_predictions = []
-        
-        # GNN output format has two separate arrays: crypto_functions and non_crypto_functions
-        # Combine them and mark which are crypto
         crypto_funcs = gnn_result.get("crypto_functions", [])
         non_crypto_funcs = gnn_result.get("non_crypto_functions", [])
-        
-        # Process crypto functions
-        for func in crypto_funcs:
-            function_predictions.append({
-                "function_name": func.get("name", "unknown"),
-                "function_address": func.get("address", "unknown"),
-                "predicted_class": func.get("class", "unknown"),
-                "confidence": func.get("confidence", 0.0),
-                "is_crypto": True,
-                "probabilities": func.get("probabilities", {}),
-                "graph_features": {
-                    "num_nodes": func.get("num_basic_blocks", 0),
-                    "num_edges": func.get("num_edges", 0)
-                }
-            })
-        
-        # Process non-crypto functions
-        for func in non_crypto_funcs:
-            function_predictions.append({
-                "function_name": func.get("name", "unknown"),
-                "function_address": func.get("address", "unknown"),
-                "predicted_class": func.get("class", "NON_CRYPTO"),
-                "confidence": func.get("confidence", 0.0),
-                "is_crypto": False,
-                "probabilities": func.get("probabilities", {}),
-                "graph_features": {
-                    "num_nodes": func.get("num_basic_blocks", 0),
-                    "num_edges": func.get("num_edges", 0)
-                }
-            })
-        
+
+        for funcs, is_crypto in ((crypto_funcs, True), (non_crypto_funcs, False)):
+            for func in funcs:
+                graph_stats = func.get("graph_stats", {})
+                function_predictions.append({
+                    "function_name": func.get("name", "unknown"),
+                    "function_address": func.get("address", "unknown"),
+                    "predicted_class": func.get("algorithm", "Non-Crypto" if not is_crypto else "unknown"),
+                    "confidence": func.get("confidence", 0.0),
+                    "is_crypto": is_crypto,
+                    "probabilities": func.get("probabilities", {}),
+                    "graph_features": {
+                        "num_nodes": graph_stats.get("num_basic_blocks", 0),
+                        "num_edges": graph_stats.get("num_edges", 0)
+                    }
+                })
+
         parsed["function_predictions"] = function_predictions
-        
-        # Calculate summary from parsed data
-        total_functions = len(function_predictions)
-        crypto_count = len(crypto_funcs)
-        non_crypto_count = len(non_crypto_funcs)
-        
+
+        statistics = gnn_result.get("statistics", {})
+        crypto_count = statistics.get("crypto_detected", len(crypto_funcs))
+        non_crypto_count = statistics.get("non_crypto", len(non_crypto_funcs))
+        total_functions = statistics.get("total_functions", crypto_count + non_crypto_count)
+
         parsed["summary"] = {
             "total_functions": total_functions,
             "crypto_functions": crypto_count,
             "non_crypto_functions": non_crypto_count,
             "crypto_percentage": (crypto_count / total_functions * 100) if total_functions > 0 else 0
         }
-        
-        # Extract binary info if available
-        parsed["binary_info"] = gnn_result.get("binary", "unknown")
-        
-        # Count algorithm distribution from crypto functions only
-        algorithm_counts = {}
-        for func in crypto_funcs:
-            algo = func.get("class", "unknown")
-            algorithm_counts[algo] = algorithm_counts.get(algo, 0) + 1
-        
+
+        parsed["binary_info"] = gnn_result.get("binary_info", "unknown")
+
+        algorithm_counts = dict(statistics.get("by_algorithm", {}))
+        if not algorithm_counts:
+            for func in crypto_funcs:
+                algo = func.get("algorithm", "unknown")
+                algorithm_counts[algo] = algorithm_counts.get(algo, 0) + 1
+
         parsed["algorithm_distribution"] = algorithm_counts
         
         return parsed

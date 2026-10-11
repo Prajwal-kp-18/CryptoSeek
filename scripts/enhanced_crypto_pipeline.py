@@ -718,7 +718,7 @@ class EnhancedCryptoAnalysisPipeline:
                     metadata_path = path
                     break
         
-        if not os.path.exists(model_path) or not os.path.exists(metadata_path):
+        if model_path is None or metadata_path is None or not os.path.exists(model_path) or not os.path.exists(metadata_path):
             raise FileNotFoundError(f"Model files not found. Please train a model first.")
         
         self.model = joblib.load(model_path)

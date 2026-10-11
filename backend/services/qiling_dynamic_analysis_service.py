@@ -3,6 +3,7 @@ Qiling Dynamic Analysis Service for Vestigo Backend
 Orchestrates dynamic crypto detection for ELF binaries using Qiling framework
 """
 
+import asyncio
 import os
 import sys
 import json
@@ -45,8 +46,8 @@ class QilingDynamicAnalysisService:
         
         if not self.python_executable.exists():
             logger.warning(f"Qiling virtual environment not found at: {self.qiling_venv}")
-            logger.warning("Using system python3 instead")
-            self.python_executable = "python3"
+            logger.warning(f"Using backend interpreter instead: {sys.executable}")
+            self.python_executable = sys.executable
         
         logger.info(f"QilingDynamicAnalysisService initialized")
         logger.info(f"Qiling analysis dir: {self.qiling_analysis_dir}")
@@ -133,7 +134,8 @@ class QilingDynamicAnalysisService:
             logger.info(f"Executing: {' '.join(cmd)}")
             
             # Run with timeout (60 seconds max)
-            process = subprocess.run(
+            process = await asyncio.to_thread(
+                subprocess.run,
                 cmd,
                 cwd=str(self.qiling_analysis_dir / "tests"),
                 capture_output=True,

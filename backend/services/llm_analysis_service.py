@@ -4,6 +4,7 @@ Integrates LLMs via OpenRouter to analyze strace logs for crypto detection
 Based on qiling_analysis/tests/llm/engine.py
 """
 
+import asyncio
 import os
 import json
 import time
@@ -260,7 +261,8 @@ STRACE LOG:
     async def _call_llm(self, prompt: str) -> Dict[str, Any]:
         """Call OpenRouter API with the constructed prompt"""
         try:
-            response = self.client.chat.completions.create(
+            response = await asyncio.to_thread(
+                self.client.chat.completions.create,
                 model=self.model,
                 messages=[
                     {

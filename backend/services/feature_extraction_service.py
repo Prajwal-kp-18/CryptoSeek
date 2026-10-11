@@ -4,8 +4,10 @@ Orchestrates Ghidra headless analysis by calling extract_features.py script
 This service does NOT implement feature extraction logic - it delegates to Ghidra
 """
 
+import asyncio
 import os
 import subprocess
+import sys
 import json
 import tempfile
 from typing import Dict, Any, List
@@ -41,7 +43,9 @@ class FeatureExtractionService:
         self.project_root = Path(__file__).parent.parent.parent
         
         # Path to enhanced crypto pipeline
-        self.enhanced_pipeline_script = self.project_root / "enhanced_crypto_pipeline.py"
+        self.enhanced_pipeline_script = self.project_root / "scripts" / "enhanced_crypto_pipeline.py"
+        self.enhanced_model_path = self.project_root / "ml" / "saved_models" / "non_crypto_model.pkl"
+        self.enhanced_metadata_path = self.project_root / "ml" / "saved_models" / "non_crypto_model_metadata.pkl"
         
         # Initialize GNN pipeline service
         self.gnn_service = GNNPipelineService()
@@ -287,7 +291,8 @@ class FeatureExtractionService:
         
         try:
             # Execute Ghidra with extract_features.py script
-            result = subprocess.run(
+            result = await asyncio.to_thread(
+                subprocess.run,
                 ghidra_cmd,
                 capture_output=True,
                 text=True,
@@ -376,6 +381,14 @@ class FeatureExtractionService:
                 "status": "skipped",
                 "reason": "enhanced_crypto_pipeline.py not found"
             }
+
+        missing = [str(p) for p in (self.enhanced_model_path, self.enhanced_metadata_path) if not os.path.exists(p)]
+        if missing:
+            logger.warning(f"Enhanced pipeline model files missing, skipping ML classification - JobID: {job_id}, Missing: {missing}")
+            return {
+                "status": "skipped",
+                "reason": f"Enhanced pipeline model files not found: {', '.join(missing)}"
+            }
         
         # Create output path for pipeline results
         pipeline_output_dir = self.project_root / "pipeline_output"
@@ -386,17 +399,20 @@ class FeatureExtractionService:
         # Build pipeline command
         # python3 enhanced_crypto_pipeline.py --ghidra input.json --output output.json
         pipeline_cmd = [
-            "python3",
+            sys.executable,
             str(self.enhanced_pipeline_script),
             "--ghidra", str(ghidra_json_path),
-            "--output", str(pipeline_output_path)
+            "--output", str(pipeline_output_path),
+            "--model-path", str(self.enhanced_model_path),
+            "--metadata-path", str(self.enhanced_metadata_path)
         ]
         
         logger.debug(f"Pipeline command: {' '.join(pipeline_cmd)}")
         
         try:
             # Run enhanced crypto pipeline
-            result = subprocess.run(
+            result = await asyncio.to_thread(
+                subprocess.run,
                 pipeline_cmd,
                 capture_output=True,
                 text=True,
@@ -519,7 +535,8 @@ class FeatureExtractionService:
         # Compute summary statistics from extract_features.py output
         # Analyze function labels (crypto vs non-crypto) assigned by the script
         total_functions = len(functions)
-        crypto_functions = len([f for f in functions if f.get("label", "Non-Crypto") != "Non-Crypto"])
+        # extract_features.py labels functions by known source names and defaults to "Other"
+        crypto_functions = len([f for f in functions if f.get("label") not in (None, "", "Other", "Non-Crypto")])
         non_crypto_functions = total_functions - crypto_functions
         
         # If pipeline ran successfully, use its predictions for enhanced statistics
