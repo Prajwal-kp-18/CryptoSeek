@@ -590,18 +590,21 @@ class GhidraFeatureExtractor:
         # Branch condition complexity (calculated from edges)
         features['branch_condition_complexity'] = max(0, features['num_edges'] - features['num_basic_blocks'])
     
+    # Ghidra processor names -> architecture names used in the training dataset
+    ARCH_ALIASES = {'arm': 'arm32', 'aarch64': 'arm64', 'risc-v': 'riscv', 'avr8': 'avr'}
+
     def _extract_architecture(self, func_data, ghidra_data):
         """Extract architecture from JSON data or filename"""
         # Try from metadata first
         if isinstance(ghidra_data, dict) and 'metadata' in ghidra_data:
             arch = ghidra_data['metadata'].get('architecture')
             if arch:
-                return arch.lower()
+                return self.ARCH_ALIASES.get(arch.lower(), arch.lower())
         
         # Try from function data
         arch = func_data.get('architecture', func_data.get('arch'))
         if arch:
-            return arch.lower()
+            return self.ARCH_ALIASES.get(arch.lower(), arch.lower())
         
         # Try to infer from filename patterns
         if hasattr(self, 'current_filename'):
