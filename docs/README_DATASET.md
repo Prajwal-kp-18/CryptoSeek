@@ -33,6 +33,7 @@ pip install -r requirements.txt
 ```bash
 export OPENROUTER_KEY="sk-or-..."
 # optional: export OPENROUTER_MODEL="openai/gpt-4"
+# or use OpenAI directly: export OPENAI_API_KEY="sk-..." LLM_PROVIDER=openai  (model: OPENAI_MODEL, default gpt-4)
 ```
 Or pass it with `--api-key` flag, or put it in a `.env` file.
 
@@ -61,7 +62,7 @@ python3 generate_dataset.py \
 
 - `--input-dir` : Directory containing JSON files (default: `ghidra_output`)
 - `--output`, `-o` : Output CSV file (default: `dataset_output.csv`)
-- `--api-key` : OpenRouter API key (overrides `OPENROUTER_KEY`)
+- `--api-key` : API key for the selected provider (overrides `OPENROUTER_KEY` / `OPENAI_API_KEY`)
 - `--batch-size` : Number of functions to process per LLM batch (default: 5, reduce if hitting token limits)
 - `--limit` : Limit number of JSON files to process (useful for testing)
 

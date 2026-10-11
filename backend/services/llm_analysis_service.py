@@ -1,6 +1,6 @@
 """
 LLM Analysis Service for Vestigo Backend
-Integrates LLMs via OpenRouter to analyze strace logs for crypto detection
+Integrates LLMs via OpenRouter or OpenAI to analyze strace logs for crypto detection
 Based on qiling_analysis/tests/llm/engine.py
 """
 
@@ -14,8 +14,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from openai import OpenAI
 from config.logging_config import logger
+from services.llm_client import create_llm_client, missing_key_message
 
 
 class LLMAnalysisService:
@@ -24,25 +24,19 @@ class LLMAnalysisService:
     
     This service:
     1. Takes strace logs and qiling analysis results
-    2. Sends them to an LLM (via OpenRouter) for intelligent crypto detection
+    2. Sends them to an LLM (via OpenRouter or OpenAI) for intelligent crypto detection
     3. Returns structured analysis with algorithm identification and confidence scores
     """
     
     def __init__(self):
-        self.api_key = os.getenv("OPENROUTER_KEY")
-        if not self.api_key:
-            logger.warning("OPENROUTER_KEY not found in environment - LLM analysis disabled")
-            self.enabled = False
+        self.client, self.model, self.provider = create_llm_client()
+        self.enabled = self.client is not None
+        if not self.enabled:
+            logger.warning(f"LLM analysis disabled - {missing_key_message()}")
         else:
-            self.client = OpenAI(
-                api_key=self.api_key,
-                base_url="https://openrouter.ai/api/v1"
-            )
-            self.enabled = True
-            logger.info("LLMAnalysisService initialized with OpenRouter API")
+            logger.info(f"LLMAnalysisService initialized with {self.provider} API")
         
         # Model configuration
-        self.model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")
         self.max_tokens = 1500  # responses are small JSON; OpenRouter reserves credit for the full max_tokens
         self.temperature = 0
         
@@ -259,7 +253,7 @@ STRACE LOG:
         return base_prompt
     
     async def _call_llm(self, prompt: str) -> Dict[str, Any]:
-        """Call OpenRouter API with the constructed prompt"""
+        """Call the configured LLM API with the constructed prompt"""
         try:
             response = await asyncio.to_thread(
                 self.client.chat.completions.create,
@@ -279,7 +273,7 @@ STRACE LOG:
             return json.loads(response.choices[0].message.content)
             
         except Exception as e:
-            logger.error(f"OpenRouter API call failed: {str(e)}")
+            logger.error(f"{self.provider} API call failed: {str(e)}")
             raise
     
     def _create_disabled_result(self, job_id: str) -> Dict[str, Any]:
@@ -289,7 +283,7 @@ STRACE LOG:
             "analysis_timestamp": time.time(),
             "analysis_tool": "llm_crypto_classifier",
             "status": "disabled",
-            "error": "LLM analysis disabled - OPENROUTER_KEY not configured",
+            "error": f"LLM analysis disabled - {missing_key_message()}",
             "llm_classification": None
         }
     

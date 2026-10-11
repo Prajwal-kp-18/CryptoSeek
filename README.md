@@ -69,6 +69,7 @@ sudo apt install postgresql && sudo -u postgres createdb vestigo
 ```bash
 DATABASE_URL=postgresql://user:pass@host:5432/vestigo
 OPENROUTER_KEY=sk-or-your-key-here  # Get from openrouter.ai/keys
+# or use OpenAI directly: OPENAI_API_KEY=sk-...  (LLM_PROVIDER=openai to prefer it)
 ```
 
 **Initialize Database:**

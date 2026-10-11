@@ -1,7 +1,8 @@
 # OpenRouter API Key Setup for LLM Integration
 
 All LLM calls in the backend go through [OpenRouter](https://openrouter.ai) using the
-OpenAI-compatible SDK (`base_url="https://openrouter.ai/api/v1"`).
+OpenAI-compatible SDK (`base_url="https://openrouter.ai/api/v1"`), or directly through
+OpenAI when an OpenAI key is configured (see [Using OpenAI directly](#using-openai-directly)).
 
 ## Quick Setup
 
@@ -56,6 +57,19 @@ Check logs for:
 
 Any model id from https://openrouter.ai/models can be used, e.g. `openai/gpt-4o-mini`
 (cheaper) or `anthropic/claude-sonnet-4.5`.
+
+## Using OpenAI directly
+
+Set an OpenAI key instead of (or alongside) the OpenRouter key:
+
+```bash
+OPENAI_API_KEY=sk-your-openai-key
+LLM_PROVIDER=openai        # needed only when OPENROUTER_KEY is also set
+OPENAI_MODEL=gpt-4o        # optional, default gpt-4o (used by both services)
+```
+
+Provider selection (`services/llm_client.py`): `LLM_PROVIDER` if set, otherwise OpenRouter when
+`OPENROUTER_KEY` is present, otherwise OpenAI when `OPENAI_API_KEY` is present.
 
 ## Cost Information
 
@@ -126,6 +140,11 @@ OPENROUTER_KEY=sk-or-your-key-here
 # Optional
 OPENROUTER_MODEL=openai/gpt-4o                     # Default: openai/gpt-4o
 OPENROUTER_CRYPTO_STRINGS_MODEL=perplexity/sonar   # Default: perplexity/sonar
+
+# Alternative: OpenAI directly
+OPENAI_API_KEY=sk-your-openai-key
+OPENAI_MODEL=gpt-4o                                # Default: gpt-4o
+LLM_PROVIDER=openai                                # openrouter | openai (default: whichever key is set, OpenRouter first)
 ```
 
 ## Sample .env File
