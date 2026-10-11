@@ -215,7 +215,7 @@ const JobAnalysis = () => {
           <AnalysisStatusIndicator 
             status={jobData?.status as string || 'processing'}
             hasFeatureExtraction={!!(jobData as Record<string, unknown>)?.feature_extraction_results}
-            hasMLClassification={!!((jobData as Record<string, unknown>)?.feature_extraction_results as Record<string, unknown>)?.ml_classification}
+            hasMLClassification={(((jobData as Record<string, unknown>)?.feature_extraction_results as Record<string, unknown>)?.ml_classification as Record<string, unknown>)?.status === 'completed'}
             hasQilingAnalysis={!!(jobData as Record<string, unknown>)?.qiling_dynamic_results}
             hasLLMAnalysis={!!(jobData as Record<string, unknown>)?.llm_analysis_results}
           />
@@ -604,7 +604,7 @@ const MLClassificationCard = ({ jobData }: { jobData: unknown }) => {
 
   const mlData = getMLData();
 
-  if (!mlData) {
+  if (!mlData || mlData.status !== 'completed') {
     return (
       <Card>
         <CardHeader>
@@ -620,7 +620,9 @@ const MLClassificationCard = ({ jobData }: { jobData: unknown }) => {
           <div className="text-center py-8">
             <Brain className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">
-              ML classification data not available yet. Analysis may still be in progress.
+              {mlData?.status === 'skipped' || mlData?.status === 'failed'
+                ? `ML classification ${mlData.status}: ${String(mlData.reason || mlData.error || 'unknown reason')}`
+                : 'ML classification data not available yet. Analysis may still be in progress.'}
             </p>
           </div>
         </CardContent>
@@ -933,8 +935,8 @@ const GNNClassificationCard = ({ jobData }: { jobData: unknown }) => {
           <div className="text-center py-8">
             <Network className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">
-              {gnnData?.status === 'failed' 
-                ? 'GNN classification failed or unavailable.'
+              {gnnData?.status === 'skipped' || gnnData?.status === 'failed'
+                ? `GNN classification ${gnnData.status}: ${String(gnnData.reason || gnnData.error || 'unknown reason')}`
                 : 'GNN classification data not available yet.'}
             </p>
           </div>

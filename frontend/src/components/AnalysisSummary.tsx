@@ -48,7 +48,7 @@ export const AnalysisSummary: React.FC<AnalysisSummaryProps> = ({ jobData }) => 
 
     return {
       hasFeatureExtraction: !!featureResults,
-      hasMLClassification: !!mlClassification,
+      hasMLClassification: mlClassification?.status === 'completed',
       hasQilingAnalysis: !!qilingResults,
       hasHardTargetInfo: !!hardTargetInfo,
       isPathC,
