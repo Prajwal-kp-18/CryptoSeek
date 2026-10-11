@@ -43,7 +43,7 @@ class LLMAnalysisService:
         
         # Model configuration
         self.model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")
-        self.max_tokens = 4096
+        self.max_tokens = 1500  # responses are small JSON; OpenRouter reserves credit for the full max_tokens
         self.temperature = 0
         
         logger.info(f"LLM Model: {self.model}")

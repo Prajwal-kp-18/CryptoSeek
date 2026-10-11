@@ -351,7 +351,7 @@ def call_llm(prompt: str) -> Dict[str, Any]:
         ],
         response_format={"type": "json_object"},
         temperature=0,
-        max_tokens=4096
+        max_tokens=1500
     )
 
     json_output = response.choices[0].message.content.strip()
