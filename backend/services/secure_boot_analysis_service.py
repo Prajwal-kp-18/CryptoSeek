@@ -3,6 +3,7 @@ Secure Boot Analysis Service for Vestigo Backend
 Analyzes bootloaders for secure boot implementation and chain of trust
 """
 
+import asyncio
 import os
 import sys
 import subprocess
@@ -22,7 +23,7 @@ class SecureBootAnalysisService:
     """Service for analyzing bootloader secure boot implementation"""
     
     def __init__(self):
-        self.analyze_script = Path(__file__).parent.parent.parent / "analyze_secure_boot.py"
+        self.analyze_script = Path(__file__).parent.parent.parent / "scripts" / "analyze_secure_boot.py"
         
         if not self.analyze_script.exists():
             logger.warning(f"Secure boot analysis script not found: {self.analyze_script}")
@@ -66,7 +67,8 @@ class SecureBootAnalysisService:
             # Run the analysis script in JSON mode
             logger.debug(f"Executing analysis script on {bootloader_path}")
             
-            result = subprocess.run(
+            result = await asyncio.to_thread(
+                subprocess.run,
                 ["python3", str(self.analyze_script), "--json", bootloader_path],
                 capture_output=True,
                 text=True,

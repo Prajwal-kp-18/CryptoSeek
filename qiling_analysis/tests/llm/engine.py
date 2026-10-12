@@ -336,22 +336,36 @@ STRACE LOG:
 # -----------------------------------------
 # LLM call for STRACE ONLY
 # -----------------------------------------
-def call_llm(prompt: str) -> Dict[str, Any]:
-    api_key = os.getenv("OPENROUTER_KEY")
-    if not api_key:
-        raise RuntimeError("Missing OPENROUTER_KEY")
+def create_client():
+    """OpenRouter or OpenAI, chosen by LLM_PROVIDER or by whichever key is set (OpenRouter first)."""
+    provider = os.getenv("LLM_PROVIDER", "").strip().lower()
+    if provider not in ("openrouter", "openai"):
+        provider = "openrouter" if os.getenv("OPENROUTER_KEY") else "openai"
 
-    client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
+    if provider == "openrouter":
+        api_key = os.getenv("OPENROUTER_KEY")
+        if not api_key:
+            raise RuntimeError("Missing OPENROUTER_KEY")
+        return OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1"), os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("Missing OPENAI_API_KEY (or OPENROUTER_KEY)")
+    return OpenAI(api_key=api_key), os.getenv("OPENAI_MODEL", "gpt-4o")
+
+
+def call_llm(prompt: str) -> Dict[str, Any]:
+    client, model = create_client()
 
     response = client.chat.completions.create(
-        model=os.getenv("OPENROUTER_MODEL", "openai/gpt-4o"),
+        model=model,
         messages=[
             {"role": "system", "content": "You must return ONLY valid JSON that strictly follows the requested schema."},
             {"role": "user", "content": prompt}
         ],
         response_format={"type": "json_object"},
         temperature=0,
-        max_tokens=4096
+        max_tokens=1500
     )
 
     json_output = response.choices[0].message.content.strip()

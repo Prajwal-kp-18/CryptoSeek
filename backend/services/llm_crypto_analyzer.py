@@ -1,17 +1,17 @@
 """
 LLM Crypto Analyzer Service
-Sends crypto string detection results to an LLM (via OpenRouter) for structured analysis
+Sends crypto string detection results to an LLM (via OpenRouter or OpenAI) for structured analysis
 """
 
 import os
 import json
 from typing import Dict, Any, List, Optional
-from openai import OpenAI
 from config.logging_config import logger
+from services.llm_client import create_llm_client, missing_key_message
 
 
 class LLMCryptoAnalyzer:
-    """Service for analyzing crypto strings using an LLM via OpenRouter"""
+    """Service for analyzing crypto strings using an LLM via OpenRouter or OpenAI"""
     
     # Structured JSON schema that LLM must follow - based on user requirements
     RESPONSE_SCHEMA = {
@@ -116,20 +116,13 @@ Return ONLY the JSON object, nothing else."""
 
     
     def __init__(self, api_key: Optional[str] = None):
-        """Initialize LLM analyzer with OpenRouter client"""
-        self.api_key = api_key or os.environ.get("OPENROUTER_KEY")
-        self.model = os.environ.get("OPENROUTER_CRYPTO_STRINGS_MODEL", "perplexity/sonar")
+        """Initialize LLM analyzer with the configured provider (OpenRouter or OpenAI)"""
+        self.client, self.model, self.provider = create_llm_client("crypto_strings", api_key)
         
-        if not self.api_key:
-            logger.warning("OPENROUTER_KEY not found. LLM analysis will be disabled.")
-            self.client = None
+        if not self.client:
+            logger.warning(f"LLM analysis will be disabled - {missing_key_message()}")
         else:
-            # Initialize OpenAI-compatible client with OpenRouter endpoint
-            self.client = OpenAI(
-                api_key=self.api_key,
-                base_url="https://openrouter.ai/api/v1"
-            )
-            logger.info("LLM Crypto Analyzer initialized with OpenRouter")
+            logger.info(f"LLM Crypto Analyzer initialized with {self.provider} ({self.model})")
     
     def analyze_crypto_strings(
         self, 
@@ -153,8 +146,8 @@ Return ONLY the JSON object, nothing else."""
         log_prefix = f"JobID: {job_id} - " if job_id else ""
         
         if not self.client:
-            logger.warning(f"{log_prefix}LLM analysis skipped - OpenRouter client not initialized")
-            return {"status": "skipped", "reason": "OPENROUTER_KEY not configured"}
+            logger.warning(f"{log_prefix}LLM analysis skipped - LLM client not initialized")
+            return {"status": "skipped", "reason": missing_key_message()}
         
         if not crypto_strings:
             logger.info(f"{log_prefix}No crypto strings to analyze")
@@ -166,7 +159,7 @@ Return ONLY the JSON object, nothing else."""
             # Prepare prompt with data
             prompt = self._prepare_prompt(crypto_strings, binary_name, file_type)
             
-            # Call OpenRouter API (using OpenAI SDK format)
+            # Call the configured LLM API (OpenAI SDK format)
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[

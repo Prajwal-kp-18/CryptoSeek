@@ -9,7 +9,7 @@ Filename format: {algorithm}_{architecture}_{compiler}_{optimization}.elf.json
 Output: One CSV row per function with all features from features.txt plus label column.
 
 Usage:
-  export OPENROUTER_KEY="sk-or-..."
+  export OPENROUTER_KEY="sk-or-..."   # or: export OPENAI_API_KEY="sk-..."  (LLM_PROVIDER=openai|openrouter to choose)
   python3 generate_dataset.py --input-dir ghidra_output --output dataset_output.csv
 """
 import os
@@ -153,7 +153,16 @@ def extract_features_from_function(func_data):
 
 
 OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
-OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'openai/gpt-4')
+
+
+def resolve_llm_provider():
+    """Return (provider, key env var, base_url, model): LLM_PROVIDER, else whichever key is set (OpenRouter first)."""
+    provider = os.getenv('LLM_PROVIDER', '').strip().lower()
+    if provider not in ('openrouter', 'openai'):
+        provider = 'openrouter' if os.getenv('OPENROUTER_KEY') else 'openai'
+    if provider == 'openrouter':
+        return provider, 'OPENROUTER_KEY', OPENROUTER_BASE_URL, os.getenv('OPENROUTER_MODEL', 'openai/gpt-4')
+    return provider, 'OPENAI_API_KEY', None, os.getenv('OPENAI_MODEL', 'gpt-4')
 
 
 def call_llm_for_classification(func_data, metadata, extracted_features, api_key=None):
@@ -162,9 +171,10 @@ def call_llm_for_classification(func_data, metadata, extracted_features, api_key
     
     Returns a dict with all feature columns filled (or empty string if unavailable).
     """
-    key = api_key or os.getenv('OPENROUTER_KEY')
+    provider, key_env, base_url, model = resolve_llm_provider()
+    key = api_key or os.getenv(key_env)
     if not key:
-        raise RuntimeError('OPENROUTER_KEY not set')
+        raise RuntimeError(f'{key_env} not set')
     
     # Decide which client to use
     use_new = hasattr(openai, 'OpenAI') and hasattr(openai, '__version__') and int(openai.__version__.split('.')[0]) >= 1
@@ -217,9 +227,9 @@ Rules:
     
     try:
         if use_new:
-            client = openai.OpenAI(api_key=key, base_url=OPENROUTER_BASE_URL)
+            client = openai.OpenAI(api_key=key, base_url=base_url)
             resp = client.chat.completions.create(
-                model=OPENROUTER_MODEL,
+                model=model,
                 messages=messages,
                 temperature=0.0,
                 max_tokens=1500
@@ -227,9 +237,10 @@ Rules:
             content = resp.choices[0].message.content
         else:
             openai.api_key = key
-            openai.api_base = OPENROUTER_BASE_URL
+            if base_url:
+                openai.api_base = base_url
             resp = openai.ChatCompletion.create(
-                model=OPENROUTER_MODEL,
+                model=model,
                 messages=messages,
                 temperature=0.0,
                 max_tokens=1500
@@ -247,7 +258,7 @@ Rules:
         return result
     
     except Exception as e:
-        logger.error('OpenRouter call failed: %s', str(e).splitlines()[0])
+        logger.error('%s call failed: %s', provider, str(e).splitlines()[0])
         # Return a default dict with label=Non-Crypto and features empty
         return {'label': 'Non-Crypto', 'features': {}}
 
@@ -330,7 +341,7 @@ def main():
     parser = argparse.ArgumentParser(description='Generate ML dataset CSV from ghidra_output JSONs')
     parser.add_argument('--input-dir', default='ghidra_output', help='Directory containing JSON files')
     parser.add_argument('--output', '-o', default='dataset_output.csv', help='Output CSV file')
-    parser.add_argument('--api-key', default=None, help='OpenRouter API key (overrides OPENROUTER_KEY)')
+    parser.add_argument('--api-key', default=None, help='API key for the selected provider (overrides OPENROUTER_KEY / OPENAI_API_KEY)')
     parser.add_argument('--batch-size', type=int, default=5, help='Functions per LLM call batch')
     parser.add_argument('--limit', type=int, default=None, help='Limit number of files to process (for testing)')
     args = parser.parse_args()

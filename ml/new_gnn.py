@@ -240,7 +240,7 @@ class GraphDataset(Dataset):
 
     EXCLUDED_LABELS = {'crypto-unknown'}
     MAX_SAMPLES_PER_CLASS = {
-        'ecc': 50s0,
+        'ecc': 500,
     }
 
     def __init__(self, json_files: List[str], label_encoder: Optional[LabelEncoder] = None):
@@ -1182,6 +1182,7 @@ class CryptoDetectionPipeline:
             'binary_info': data.get('binary', {}),
             'metadata': data.get('metadata', {}),
             'crypto_functions': [],
+            'non_crypto_functions': [],
             'statistics': {
                 'total_functions': len(data['functions']),
                 'crypto_detected': 0,
@@ -1208,6 +1209,14 @@ class CryptoDetectionPipeline:
                     results['statistics']['crypto_detected'] += 1
                     results['statistics']['by_algorithm'][prediction['algorithm']] += 1
                 else:
+                    results['non_crypto_functions'].append({
+                        'address': func['address'],
+                        'name': func.get('name', 'unknown'),
+                        'algorithm': prediction['algorithm'],
+                        'confidence': prediction['confidence'],
+                        'probabilities': prediction['probabilities'],
+                        'graph_stats': func.get('graph_level', {})
+                    })
                     results['statistics']['non_crypto'] += 1
 
             except Exception as e:

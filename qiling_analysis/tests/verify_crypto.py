@@ -41,7 +41,14 @@ class TeeOutput:
     def flush(self):
         self.terminal.flush()
         self.log.flush()
-        
+
+    def fileno(self):
+        # Qiling maps the emulated program's stdout onto a real file descriptor
+        return self.terminal.fileno()
+
+    def isatty(self):
+        return self.terminal.isatty()
+
     def close(self):
         self.log.close()
         sys.stdout = self.terminal
