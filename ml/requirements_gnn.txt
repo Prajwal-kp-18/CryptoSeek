@@ -29,5 +29,5 @@ networkx>=2.6.0
 pygraphviz>=1.7  # Optional: for advanced graph visualization
 
 # Testing (optional)
-pytest>=6.2.0
+pytest>=9.1.1
 pytest-cov>=2.12.0
