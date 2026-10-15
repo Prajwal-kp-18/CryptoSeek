@@ -21,7 +21,7 @@ dacite==1.8.1
 dill==0.4.0
 distro==1.9.0
 enum-compat==0.0.3
-fastapi==0.124.0
+fastapi==0.141.1
 filelock==3.19.1
 first==2.0.2
 flake8==7.3.0
