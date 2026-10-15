@@ -20,7 +20,7 @@ z3-solver>=4.11.0
 # Development and Testing (Optional)
 pytest>=7.0.0
 pytest-cov>=4.0.0
-black>=22.0.0
+black>=26.5.1
 flake8>=5.0.0
 mypy>=0.990
 
