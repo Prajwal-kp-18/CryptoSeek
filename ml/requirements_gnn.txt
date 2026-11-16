@@ -22,7 +22,7 @@ tqdm>=4.62.0
 
 # Jupyter support (optional, for notebook)
 jupyter>=1.0.0
-ipywidgets>=7.6.0
+ipywidgets>=8.1.9
 
 # Graph visualization (optional)
 networkx>=2.6.0
