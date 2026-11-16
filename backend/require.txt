@@ -136,7 +136,7 @@ urwid==2.6.15
 uvicorn==0.38.0
 wcwidth==0.2.13
 wheel==0.45.1
-xxhash==3.6.0
+xxhash==4.1.0
 yamale==5.2.1
 yara-python==4.5.4
 yarl==1.22.0
