@@ -26,7 +26,7 @@ ipywidgets>=7.6.0
 
 # Graph visualization (optional)
 networkx>=2.6.0
-pygraphviz>=1.7  # Optional: for advanced graph visualization
+pygraphviz>=2.0.4  # Optional: for advanced graph visualization
 
 # Testing (optional)
 pytest>=6.2.0
