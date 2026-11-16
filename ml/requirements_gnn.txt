@@ -25,7 +25,7 @@ jupyter>=1.0.0
 ipywidgets>=7.6.0
 
 # Graph visualization (optional)
-networkx>=2.6.0
+networkx>=3.7
 pygraphviz>=1.7  # Optional: for advanced graph visualization
 
 # Testing (optional)
